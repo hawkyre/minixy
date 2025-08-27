@@ -5,8 +5,31 @@ import {
   UploadCsvResponse,
 } from './schemas';
 
-export async function getCompanies(): Promise<GetCompaniesResponse> {
-  const response = await fetch('/api/companies');
+interface GetCompaniesParams {
+  domain?: string;
+  country?: string;
+  employeeSize?: string;
+}
+
+export async function getCompanies(
+  params?: GetCompaniesParams
+): Promise<GetCompaniesResponse> {
+  const searchParams = new URLSearchParams();
+
+  if (params?.domain) {
+    searchParams.append('domain', params.domain);
+  }
+  if (params?.country && params.country !== '_') {
+    searchParams.append('country', params.country);
+  }
+  if (params?.employeeSize && params.employeeSize !== '_') {
+    searchParams.append('employeeSize', params.employeeSize);
+  }
+
+  const url = searchParams.toString()
+    ? `/api/companies?${searchParams.toString()}`
+    : '/api/companies';
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch companies: ${response.statusText}`);

@@ -15,6 +15,13 @@ import { Search, Loader2 } from 'lucide-react';
 import { Company } from '@/types';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Card,
   CardContent,
   CardDescription,
@@ -32,18 +39,50 @@ import {
 
 interface CompaniesTableProps {
   companies: Company[];
-  loading: boolean;
+  allCompanies: Company[];
+  loadingInitial: boolean;
+  loadingFilters: boolean;
   error: string | null;
+  domain: string;
+  country: string;
+  employeeSize: string;
+  onFilterChange: (
+    filterType: 'domain' | 'country' | 'employeeSize',
+    value: string
+  ) => void;
 }
 
 export function CompaniesTable({
   companies,
-  loading,
+  allCompanies,
+  loadingInitial,
+  loadingFilters,
   error,
+  domain,
+  country,
+  employeeSize,
+  onFilterChange,
 }: CompaniesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+
+  // Get unique countries for the filter dropdown
+  const uniqueCountries = useMemo(() => {
+    const countries = allCompanies
+      .map((company) => company.country)
+      .filter((country): country is string => Boolean(country))
+      .sort();
+    return Array.from(new Set(countries));
+  }, [allCompanies]);
+
+  const uniqueEmployeeSizes = useMemo(() => {
+    const employeeSizes = allCompanies
+      .map((company) => company.employee_size)
+      .filter((employeeSize): employeeSize is string => Boolean(employeeSize))
+      .sort();
+    return Array.from(new Set(employeeSizes));
+  }, [allCompanies]);
 
   const formatDateTime = (date: string) => {
     return new Date(date).toLocaleString();
@@ -114,7 +153,7 @@ export function CompaniesTable({
     },
   });
 
-  if (loading) {
+  if (loadingInitial) {
     return (
       <Card>
         <CardContent className='flex items-center justify-center p-12'>
@@ -143,21 +182,84 @@ export function CompaniesTable({
   return (
     <Card>
       <CardHeader>
-        <div className='flex items-center justify-between'>
-          <div className='space-y-1'>
-            <CardTitle>Companies Directory</CardTitle>
-            <CardDescription>
-              {companies.length} companies in the database
-            </CardDescription>
+        <div className='space-y-4'>
+          <div className='flex items-center justify-between'>
+            <div className='space-y-1'>
+              <CardTitle>Companies Directory</CardTitle>
+              <CardDescription>
+                {companies.length} companies in the database
+              </CardDescription>
+            </div>
           </div>
-          <div className='relative w-64'>
-            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
-            <Input
-              placeholder='Search companies...'
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className='pl-9'
-            />
+
+          <div className='flex items-center justify-between'>
+            <div className='flex flex-wrap gap-4'>
+              <div className='flex flex-col space-y-1'>
+                <label className='text-sm font-medium text-muted-foreground'>
+                  Country
+                </label>
+                <Select
+                  value={country}
+                  onValueChange={(value) => onFilterChange('country', value)}
+                >
+                  <SelectTrigger className='w-[180px]'>
+                    <SelectValue placeholder='All countries' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='_'>All countries</SelectItem>
+                    {uniqueCountries.map((countryOption) => (
+                      <SelectItem key={countryOption} value={countryOption}>
+                        {countryOption}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className='flex flex-col space-y-1'>
+                <label className='text-sm font-medium text-muted-foreground'>
+                  Employee Size
+                </label>
+                <Select
+                  value={employeeSize}
+                  onValueChange={(value) =>
+                    onFilterChange('employeeSize', value)
+                  }
+                >
+                  <SelectTrigger className='w-[180px]'>
+                    <SelectValue placeholder='All sizes' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='_'>All sizes</SelectItem>
+                    {uniqueEmployeeSizes.map((sizeOption) => (
+                      <SelectItem key={sizeOption} value={sizeOption}>
+                        {sizeOption}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className='flex flex-col space-y-1'>
+                <label className='text-sm font-medium text-muted-foreground'>
+                  Domain
+                </label>
+                <div className='relative w-64'>
+                  <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                  <Input
+                    placeholder='Search by domain...'
+                    value={domain}
+                    onChange={(e) => onFilterChange('domain', e.target.value)}
+                    className='pl-9'
+                  />
+                </div>
+              </div>
+            </div>
+            {loadingFilters && (
+              <div className='flex items-center justify-center'>
+                <Loader2 className='h-6 w-6 animate-spin' />
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
