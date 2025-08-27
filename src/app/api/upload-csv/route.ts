@@ -3,6 +3,8 @@ import Papa from 'papaparse';
 import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { companiesTable } from '@/db/schema';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +39,10 @@ export async function POST(request: NextRequest) {
       parseResult.data.map(cleanRow).map(enrichRow)
     );
 
+    const db = drizzle(process.env.DATABASE_URL!);
+
+    await db.insert(companiesTable).values(enrichedData);
+
     return NextResponse.json(
       {
         message: 'CSV uploaded and processed successfully',
@@ -60,6 +66,7 @@ interface Row {
   employee_size?: string;
   city?: string;
   domain?: string;
+  company_name?: string;
 }
 
 function cleanRow(row: Row) {
@@ -67,8 +74,10 @@ function cleanRow(row: Row) {
   const employeeSize = cleanAndTrim(row.employee_size);
   const city = cleanAndTrim(row.city);
   const domain = cleanAndTrim(row.domain).replace(/\s+/g, '');
+  const company_name = cleanAndTrim(row.company_name);
 
   return {
+    company_name,
     country,
     employeeSize,
     city,
@@ -81,6 +90,7 @@ async function enrichRow(row: Row) {
   You are an expert data analyst. You are given a row of potentially incomplete or miscategorized data. You need to enrich the data.
 
   The fields and their supposed values are:
+  - company_name: ${row.company_name} (Should be a company name)
   - country: ${row.country} (Should be a ISO 3166 country name)
   - employee_size: ${row.employee_size} (Should be a value from the bucket (1-10, 11-50, 51-200, 201-500, 501-1000, 1001-5000, 5001-10000, 10000+). if the value is present, use that one. if not, infer it from 2025 data.)
   - city: ${row.city} (Should be a city name)
@@ -92,6 +102,7 @@ async function enrichRow(row: Row) {
   `;
 
   const schema = z.object({
+    company_name: z.string(),
     country: z.string(),
     employee_size: z.enum([
       '1-10',
@@ -114,8 +125,6 @@ async function enrichRow(row: Row) {
     schemaDescription: 'A row of data about a company.',
     schema: schema,
   });
-
-  console.log(response);
 
   return response.object;
 }
