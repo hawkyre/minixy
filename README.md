@@ -1,24 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Minixy
+
+This is a [Next.js](https://nextjs.org) React application with PostgreSQL database, containerized with Docker.
 
 ## Getting Started
 
-First, run the development server:
+### Using Docker (Recommended)
+
+1. Start the application and database:
+
+```bash
+docker-compose up
+```
+
+This will start:
+- Next.js React app on [http://localhost:3000](http://localhost:3000)
+- PostgreSQL database on port 5432
+
+2. The app will automatically reload when you make changes to the code.
+
+### Development without Docker
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Start a PostgreSQL database (you'll need to set up your own)
+
+3. Set the DATABASE_URL environment variable:
+
+```bash
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/minixy_dev
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Database Connection
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app includes a PostgreSQL connection utility at `src/lib/db.ts` that you can use to query the database. The connection string is automatically configured when using Docker Compose.
 
 ## Learn More
 
