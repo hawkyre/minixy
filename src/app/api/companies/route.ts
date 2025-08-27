@@ -7,12 +7,7 @@ export async function GET() {
     const db = drizzle(process.env.DATABASE_URL!);
     const companies = await db.select().from(companiesTable);
 
-    return NextResponse.json(
-      {
-        companies: companies,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({ companies: companies }, { status: 200 });
   } catch (error) {
     console.error('Error retrieving companies:', error);
     return NextResponse.json(
