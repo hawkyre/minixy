@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   flexRender,
   getCoreRowModel,
@@ -12,7 +12,6 @@ import {
   type ColumnFiltersState,
 } from '@tanstack/react-table';
 import { Search, Loader2 } from 'lucide-react';
-import { getCompanies } from '@/api-client/companies';
 import { Company } from '@/types';
 import { Input } from '@/components/ui/input';
 import {
@@ -31,33 +30,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-export function CompaniesTable() {
-  const [data, setData] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface CompaniesTableProps {
+  companies: Company[];
+  loading: boolean;
+  error: string | null;
+}
+
+export function CompaniesTable({
+  companies,
+  loading,
+  error,
+}: CompaniesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-
-  // ENHANCEMENT - Implement fetching pagination
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const response = await getCompanies();
-        setData(response.companies);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to load companies'
-        );
-        console.error('Error fetching companies:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
 
   const formatDateTime = (date: string) => {
     return new Date(date).toLocaleString();
@@ -112,7 +98,7 @@ export function CompaniesTable() {
   );
 
   const table = useReactTable({
-    data,
+    data: companies,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -161,7 +147,7 @@ export function CompaniesTable() {
           <div className='space-y-1'>
             <CardTitle>Companies Directory</CardTitle>
             <CardDescription>
-              {data.length} companies in the database
+              {companies.length} companies in the database
             </CardDescription>
           </div>
           <div className='relative w-64'>
@@ -224,11 +210,11 @@ export function CompaniesTable() {
             </TableBody>
           </Table>
         </div>
-        {data.length > 0 && (
+        {companies.length > 0 && (
           <div className='flex items-center justify-end space-x-2 py-4'>
             <div className='text-sm text-muted-foreground'>
-              Showing {table.getFilteredRowModel().rows.length} of {data.length}{' '}
-              companies
+              Showing {table.getFilteredRowModel().rows.length} of{' '}
+              {companies.length} companies
             </div>
           </div>
         )}

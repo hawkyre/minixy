@@ -41,14 +41,12 @@ export async function POST(request: NextRequest) {
 
     const db = drizzle(process.env.DATABASE_URL!);
 
+    // ENHANCEMENT - Parse this properly and return it instead of the raw data
     await db.insert(companiesTable).values(enrichedData);
 
     return NextResponse.json(
       {
-        message: 'CSV uploaded and processed successfully',
-        rowCount: parseResult.data.length,
-        headers: parseResult.meta.fields,
-        data: enrichedData,
+        companies: enrichedData,
       },
       { status: 201 }
     );
