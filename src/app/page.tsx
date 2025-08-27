@@ -49,6 +49,7 @@ export default function Home() {
 
   const handleUploadSuccess = (newCompanies: Company[]) => {
     setCompanies((prev) => [...prev, ...newCompanies]);
+    setAllCompanies((prev) => [...prev, ...newCompanies]);
   };
 
   // ENHANCEMENT - Store everything in a single state
