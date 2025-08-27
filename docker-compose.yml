@@ -1,26 +1,4 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: minixy-app
-    ports:
-      - '3000:3000'
-    volumes:
-      - .:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-      - DATABASE_URL=postgresql://postgres:postgres@pg:5432/minixy_dev
-    depends_on:
-      pg:
-        condition: service_healthy
-    networks:
-      - minixy_network
-    stdin_open: true
-    tty: true
-
   pg:
     image: postgres:16
     container_name: minixy-pg
@@ -39,14 +17,8 @@ services:
       timeout: 15s
       retries: 10
       start_period: 30s
-    networks:
-      - minixy_network
 
 volumes:
   postgresql_volume:
     name: minixy_pg_volume
-    external: false
-
-networks:
-  minixy_network:
     external: false
