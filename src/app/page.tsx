@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { CompaniesTable } from '@/components/CompaniesTable';
 import { CsvUploadCard } from '@/components/CsvUploadCard';
 import { Company } from '@/types';
-import { getCompanies } from '@/api-client/companies';
+import { deleteCompanies, getCompanies } from '@/api-client/companies';
 
 export default function Home() {
   // ENHANCEMENT - use context
@@ -15,28 +15,29 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   // ENHANCEMENT - Implement debouncing for the domain filter
-  const [domain, setDomain] = useState('');
-  const [country, setCountry] = useState('');
-  const [employeeSize, setEmployeeSize] = useState('');
+  const [filters, setFilters] = useState<{
+    domain: string;
+    country: string;
+    employeeSize: string;
+  }>({
+    domain: '',
+    country: '',
+    employeeSize: '',
+  });
 
   // ENHANCEMENT - Implement fetching pagination
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        const response = await getCompanies({
-          domain,
-          country,
-          employeeSize,
-        });
+        const response = await getCompanies(filters);
         if (!hasLoaded) {
           setAllCompanies(response.companies);
         }
+        // ENHANCEMENT - Add a toast
         setCompanies(response.companies);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to load companies'
-        );
+      } catch {
+        setError('Failed to load companies');
       } finally {
         setLoading(false);
         setHasLoaded(true);
@@ -45,7 +46,7 @@ export default function Home() {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [domain, country, employeeSize]);
+  }, [filters]);
 
   const handleUploadSuccess = (newCompanies: Company[]) => {
     setCompanies((prev) => [...prev, ...newCompanies]);
@@ -57,13 +58,21 @@ export default function Home() {
     filterType: 'domain' | 'country' | 'employeeSize',
     value: string
   ) => {
-    if (filterType === 'domain') {
-      setDomain(value);
-    } else if (filterType === 'country') {
-      setCountry(value);
-    } else if (filterType === 'employeeSize') {
-      setEmployeeSize(value);
-    }
+    setFilters((prev) => ({
+      ...prev,
+      [filterType]: value,
+    }));
+  };
+
+  const handleDeleteCompanies = async () => {
+    await deleteCompanies();
+    setCompanies([]);
+    setAllCompanies([]);
+    setFilters({
+      domain: '',
+      country: '',
+      employeeSize: '',
+    });
   };
 
   return (
@@ -86,10 +95,9 @@ export default function Home() {
             loadingInitial={loading && !hasLoaded}
             loadingFilters={loading}
             error={error}
-            domain={domain}
-            country={country}
-            employeeSize={employeeSize}
+            filters={filters}
             onFilterChange={handleFilterChange}
+            onDeleteCompanies={handleDeleteCompanies}
           />
         </div>
       </div>

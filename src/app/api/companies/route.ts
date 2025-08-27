@@ -36,3 +36,9 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE() {
+  const db = drizzle(process.env.DATABASE_URL!);
+  await db.delete(companiesTable);
+  return NextResponse.json({ message: 'Companies deleted' }, { status: 200 });
+}

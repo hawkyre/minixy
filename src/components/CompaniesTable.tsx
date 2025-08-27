@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from './ui/button';
 
 interface CompaniesTableProps {
   companies: Company[];
@@ -43,13 +44,16 @@ interface CompaniesTableProps {
   loadingInitial: boolean;
   loadingFilters: boolean;
   error: string | null;
-  domain: string;
-  country: string;
-  employeeSize: string;
+  filters: {
+    domain: string;
+    country: string;
+    employeeSize: string;
+  };
   onFilterChange: (
     filterType: 'domain' | 'country' | 'employeeSize',
     value: string
   ) => void;
+  onDeleteCompanies: () => void;
 }
 
 export function CompaniesTable({
@@ -58,10 +62,9 @@ export function CompaniesTable({
   loadingInitial,
   loadingFilters,
   error,
-  domain,
-  country,
-  employeeSize,
+  filters: { domain, country, employeeSize },
   onFilterChange,
+  onDeleteCompanies,
 }: CompaniesTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -254,12 +257,16 @@ export function CompaniesTable({
                   />
                 </div>
               </div>
+              {loadingFilters && (
+                <div className='flex items-center justify-center self-end mb-2'>
+                  <Loader2 className='h-6 w-6 animate-spin' />
+                </div>
+              )}
             </div>
-            {loadingFilters && (
-              <div className='flex items-center justify-center'>
-                <Loader2 className='h-6 w-6 animate-spin' />
-              </div>
-            )}
+            {/* ENHANCEMENT - Add a confirmation modal and a toast notification */}
+            <Button variant='destructive' onClick={onDeleteCompanies}>
+              Delete all companies
+            </Button>
           </div>
         </div>
       </CardHeader>

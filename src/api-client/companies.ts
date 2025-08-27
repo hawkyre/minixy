@@ -51,3 +51,11 @@ export async function uploadCsv(file: File): Promise<UploadCsvResponse> {
 
   return UploadCsvResponseSchema.parse(await response.json());
 }
+
+export async function deleteCompanies() {
+  const response = await fetch('/api/companies', {
+    method: 'DELETE',
+  });
+
+  return response.json();
+}
